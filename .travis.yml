@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t krunalyadav/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true krunalyadav/react-test npm test
+
+after_success:
+  - docker build -t krunalyadav/multi-client ./client
+  - docker build -t krunalyadav/multi-nginx ./nginx
+  - docker build -t krunalyadav/multi-server ./server
+  - docker build -t krunalyadav/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push krunalyadav/multi-client
+  - docker push krunalyadav/multi-nginx
+  - docker push krunalyadav/multi-server
+  - docker push krunalyadav/multi-worker
